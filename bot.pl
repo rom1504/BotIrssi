@@ -1,50 +1,58 @@
+# # INIT
+# # {
+# #     while (my ($module, $path) = each %INC)
+# #     {
+# #         $module_times{ $module } = -M $path;
+# #     }
+# # }
+
+my $basePath="/home/rom1504/.irssibot/scripts/autorun/botirssi/";
+
 INIT
 {
-    while (my ($module, $path) = each %INC)
-    {
-        $module_times{ $module } = -M $path;
-    }
+push(@INC,$basePath);
 }
+push(@INC,$basePath);
 use Irssi;
 use vars qw($VERSION %IRSSI);
 use Encode;
-my %module_times;
-
-while (my ($module, $time) = each %module_times)
-{
-	my $mod_time   = -M $INC{$module};
-	next if $time == $mod_time;
-
-	no warnings 'redefine';
-	require ( delete $INC{  $module } );
-	$module_times{ $module } = $mod_time;
-}
-require ( delete $INC{  "countdown.pm" } );
-delete $INC{'countdown.pm'};
-
-# réfléchir à faire des modules ( comme countdown ) plutôt que cet afreux fichier
-
+# # my %module_times;
+# # 
+# # while (my ($module, $time) = each %module_times)
+# # {
+# # 	my $mod_time   = -M $INC{$module};
+# # 	next if $time == $mod_time;
+# # 
+# # 	no warnings 'redefine';
+# # 	require ( delete $INC{  $module } );
+# # 	$module_times{ $module } = $mod_time;
+# # }
+# # require ( delete $INC{  "countdown.pm" } );
+# # delete $INC{'countdown.pm'};
+# 
+# # réfléchir à faire des modules ( comme countdown ) plutôt que cet afreux fichier
+# 
 use countdown;
 # use LWP::UserAgent;
 # use URI::Escape;
 
-open ( FILE, "<.irssibot/scripts/autorun/qr.txt" ) or die "can't open qr.txt\n";
+open ( FILE, "<".$basePath."qr.txt" ) or die "can't open qr.txt\n";
 chomp( @qr = <FILE> );
 close FILE;
 
-open ( FILE, "<.irssibot/scripts/autorun/score.txt" ) or die "can't open score.txt\n";
+open ( FILE, "<".$basePath."score.txt" ) or die "can't open score.txt\n";
 chomp( @sa = <FILE> );
 close FILE;
 
-open ( FILE, "<.irssibot/scripts/autorun/ODS5.txt" ) or die "can't open ODS5.txt\n";
+open ( FILE, "<".$basePath."ODS5.txt" ) or die "can't open ODS5.txt\n";
 chomp( @diko = <FILE> );
 close FILE;
 
-open ( FILE, "<.irssibot/scripts/autorun/fr.txt" ) or die "can't open fr.txt\n";
+open ( FILE, "<".$basePath."fr.txt" ) or die "can't open fr.txt\n";
 chomp( @diko2 = <FILE> );
 close FILE;
 
-open ( FILE, "<.irssibot/scripts/autorun/quote.txt" ) or die "can't open quote.txt\n";
+open ( FILE, "<".$basePath."quote.txt" ) or die "can't open quote.txt\n";
 chomp( @quote = <FILE> );
 close FILE;
 
@@ -61,8 +69,8 @@ sub reconnaitre
 
 
 delete $INC{"ia.pl"};
-delete $INC{".irssibot/scripts/ia.pl"};
-require ".irssibot/scripts/ia.pl";
+delete $INC{$basePath."ia.pl"};
+require $basePath."ia.pl";
 
 
 #23:49 < courgette> Ce qui serait cool ce serait de prendre une base de donnée et de générer des questions automatiquement à partir de cette bdd
@@ -335,7 +343,7 @@ sub event_privmsg
 		}
 		elsif($v->{"quiz"} && $text =~ /'q save/)
 		{
-			open ( FILE, ">.irssibot/scripts/autorun/score.txt" ) or die "can't open score.txt\n";
+			open ( FILE, ">".$basePath."score.txt" ) or die "can't open score.txt\n";
 			foreach $nick (sort keys %s)
 			{
 				print FILE  "$nick:$s{$nick}\n"; # sauvegarde auto ? joker ?
@@ -624,7 +632,7 @@ sub event_privmsg
 	{
 		sub writequote
 		{
-			open ( FILE, ">.irssibot/scripts/autorun/quote.txt" ) or die "can't open quote.txt\n";
+			open ( FILE, ">".$basePath."quote.txt" ) or die "can't open quote.txt\n";
 			foreach $q (@quote)
 			{
 				if(defined($q))

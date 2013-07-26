@@ -1,5 +1,7 @@
+my $basePath="/home/rom1504/.irssibot/scripts/autorun/botirssi/";
+
 use Encode;
-open ( FILE, "<.irssibot/scripts/autorun/dictionnaire.txt" ) or open ( FILE, "<dictionnaire.txt" ) or die "can't open dictionnaire.txt\n";
+open ( FILE, "<".$basePath."dictionnaire.txt" ) or open ( FILE, "<dictionnaire.txt" ) or die "can't open dictionnaire.txt\n";
 chomp( @dic = <FILE> );
 close FILE;
 
