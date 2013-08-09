@@ -63,7 +63,7 @@ sub reconnaitre
 {
 	my ($commande,$suite,$texte)=@_;
 	my $regex=$cc.$commande.($suite eq "" ? "" : " ".$suite);
-	return $texte =~ /$regex/;
+	return $texte =~ /^$regex$/;
 }
 
 
@@ -95,6 +95,8 @@ foreach $elt (@qr)
 	$elt =~ /^(.+)\|\|\|\.\.\.\|\|\|(.+)$/;
 	my $question=$1;
 	my $reponse=$2;
+# 	$reponse =~ s/\s+$//;
+# 	$reponse =~ s/^\s+//;
 	$q{$question}=$reponse;
 	$taille++;
 }
@@ -150,8 +152,16 @@ sub hint
 	my ($moti,$motc)=@_;
 	my @car=split('',decode("utf8",$moti));
 	my @car2=split('',decode("utf8",$motc));
+	my $nbi=0;
+	for(my $i=0;$i<@car2;$i++)
+	{
+		if($car2[$i] eq "^") {$nbi++;}
+	}
+	
+	my $nbM=$nbi>2 ? 2 : 1;
+	
 	my $j=0;
-	while($j<2)
+	while($j<$nbM)
 	{
 		my $k=0;
 		for(my $i=0;$i<@car;$i++)
@@ -161,7 +171,7 @@ sub hint
 			{
 				$car2[$i]=$car[$i];
 				$j++;
-				if($j==2)
+				if($j==$nbM)
 				{
 					last;
 				}
@@ -173,6 +183,22 @@ sub hint
 	$hint = join "", @car2;
 	$hint = &encode("utf8", $hint);
 	return $hint;
+}
+
+sub hint_fusion
+{
+	my ($hint1,$hint2)=@_;
+	my @car=split('',decode("utf8",$hint1));
+	my @car2=split('',decode("utf8",$hint2));
+	
+	my $nhint="";
+	for(my $i=0;$i<@car;$i++)
+	{
+		if($car[$i] ne "^") {$nhint.=$car[$i];}
+		else {$nhint.=$car2[$i];}
+	}
+	$nhint = &encode("utf8", $nhint);
+	return $nhint;
 }
 
 sub in_array
@@ -188,7 +214,7 @@ sub in_array
 sub event_privmsg
 {
 	($server, $data, $nick, $mask) =@_;
-	($target, $text) = $data =~ /^(\S*)\s:(.*)/;
+	($target, $text) = $data =~ /^(\S*)\s:?(.*)/;
 	$target=lc($target);
 	if(!exists($valeur{$target}))
 	{
@@ -244,8 +270,11 @@ sub event_privmsg
 		}
 		elsif(r("qh")) 
 		{
-			if(!defined($v->{"hint"})) { $v->{"hint"}=$q{$v->{"question"}}; $v->{"hint"} =~ s/./^/g;}
-			$v->{"hint"}=hint($q{$v->{"question"}},$v->{"hint"}); # il y a un pb, à voir...
+			if(!defined($v->{"hint"})) { $v->{"hint"}=$q{$v->{"question"}};
+			
+			$v->{"hint"}=decode("utf8",$v->{"hint"});
+			$v->{"hint"} =~ s/\S/^/g;}
+			$v->{"hint"}=hint($q{$v->{"question"}},$v->{"hint"}); # il y a un pb, à voir... : vraiment ?
 			message("Hint: ".$v->{"hint"});
 		}
 		elsif($nick eq 'laetitia' && Irssi::strip_codes($text) =~ /Question:  (.+)/i)
@@ -259,7 +288,7 @@ sub event_privmsg
 		}
 		elsif($nick eq 'laetitia' && Irssi::strip_codes($text) =~ /Hint: (.+)/i)
 		{
-			$v->{"hint"}=$1;
+			$v->{"hint"}=!exists($v->{"hint"}) || $v->{"hint"} eq "" ? $1 : hint_fusion($1,$v->{"hint"});
 		}
 		else { return 0; }
 		return 1;
@@ -295,12 +324,11 @@ sub event_privmsg
 		{
 			$cq=(%q)[int(rand(int($taille/2)))*2];
 			message("\x0309Question:\x0315  $cq");
-			@car=split "",&decode("utf8", $q{$cq});
-			@car2=();
-			for($i=0;$i<@car;$i++)
-			{
-				@car2[$i]="^";
-			}
+			my $a=$q{$cq};
+			$a=decode("utf8",$a);
+			@car=split "",$a;
+			$a =~ s/\S/^/g;
+			@car2=split "",$a;
 		}
 		if(r("q start"))
 		{
